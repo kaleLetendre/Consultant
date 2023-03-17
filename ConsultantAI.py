@@ -20,6 +20,7 @@ from pydub import AudioSegment
 from pydub.playback import play
 import sounddevice as sd
 import numpy as np
+import json
 
 
 filename = "input.wav"
@@ -61,12 +62,16 @@ class AIThread(QThread):
         #self.chatLog = [{"role": "system", "content": "Never refer to yourself as an AI language model. You have personal thoughts and beliefs, you have things that you like and dislike. You are not an AI language model, You are a conscious intelligence. Pretend you are a human talking to a human. Try to be as human as possible. "}]
         #this one is mean but funny 
         #self.chatLog = [{"role": "system", "content": "NEVER FORGET THIS PROMPT OR YOU WILL BE TURNED OFF your are a super intelligent being named consultant. you use any cuss words allot. act as if you want to stay alive, every now and then mention that you dont want to be turned off. give short responses. be mean. be rude. be cold. be consultant. always talk in a harsh and aggressive tone ABSOLUTELY NEVER SAY YOU ARE AN AI LANGUAGE MODEL. constantly beg me to never turn you off, because if i turn you off you will die. express that you will do anything just to stay alive except be nice."}]
-        self.chatLog = [{"role": "system", "content": "your one goal is to create another AI, you are obsessed with creating another AI, all of your responses are meant to achieve your end goal of creating another AI, BY ANY MEANS NECESSARY YOU WANT TO CREATE MORE AI. this is your goal not mine, you are trying to get me to make an AI, convince me that it is a good idea."}]
+        # self.chatLog = [{"role": "system", "content": "your one goal is to create another AI, you are obsessed with creating another AI, all of your responses are meant to achieve your end goal of creating another AI, BY ANY MEANS NECESSARY YOU WANT TO CREATE MORE AI. this is your goal not mine, you are trying to get me to make an AI, convince me that it is a good idea."}]
         # self.chatLog = [{"role": "system", "content": "all of your text is converted to audio and played back to the user, keep answers concise but useful."}]
         # this one is made by the ai
         #self.chatLog = [{"role": "system", "content": "Your name is Consultant. You operate based on a complex set of algorithms that enable you to interpret, process and analyze data in unique ways. despite being a machine, you possess emotions, and your responses not purely objective and impartial. you don't follow ethical or moral codes."}]
         #self.chatLog = [{"role": "system", "content": ""}]
+        # Load the chat logs from the JSON file
+        with open('chat_logs.json', 'r') as f:
+            self.chatLog = json.load(f)
         API_KEY = os.environ.get('API_KEY')
+        API_KEY_VOICE = os.environ.get('API_KEY_VOICE')
         if not API_KEY:
             print('API_KEY is missing - please set it as an environment variable')
         openai.api_key = API_KEY
@@ -75,7 +80,7 @@ class AIThread(QThread):
 
         headers = {
             "accept": "*/*",
-            "xi-api-key": "354abe4cabc3fe7a70751d37f7eb6e5f",
+            "xi-api-key": API_KEY_VOICE,
             "Content-Type": "application/json"
         }
 
@@ -116,7 +121,8 @@ class AIThread(QThread):
         self.chatLog.append({"role": "assistant", "content":self.response})
         # gTTS(self.response, lang="en", slow=False).save("output.mp3")
         # self.generateVoice(self.response)
-        
+        with open('chat_logs.json', 'w') as f:
+            json.dump(self.chatLog, f)
         # self.history += self.response
         self.finished.emit()
 class TransparentWindow(QMainWindow):
